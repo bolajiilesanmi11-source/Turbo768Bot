@@ -1,38 +1,21 @@
 import os
-import sys
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
+import telebot
 
-# Your welcome message
-WELCOME_MESSAGE = """👋 Welcome!
+# Get the token from environment variables (configured later on Render)
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
 
-Thanks for joining. 🚀
+if not BOT_TOKEN:
+    raise ValueError("No BOT_TOKEN found in environment variables!")
 
-Use the menu below to get started and explore the available features. If you need any help, just send a message and I'll assist you.
+bot = telebot.TeleBot(BOT_TOKEN)
 
-Enjoy your experience! 😊"""
+# This decorator listens for the /start command
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    welcome_text = "💬 Join discussions, get updates, and connect with other"
+    bot.reply_to(message, welcome_text)
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Sends a welcome message when the command /start is issued by ANY user."""
-    await update.message.reply_text(WELCOME_MESSAGE)
-
-def main():
-    # Fetch the token from Render's environment variables
-    token = os.environ.get("TELEGRAM_TOKEN")
-    
-    if not token:
-        print("Error: TELEGRAM_TOKEN environment variable not set.", file=sys.stderr)
-        sys.exit(1)
-
-    # Build the application
-    application = Application.builder().token(token).build()
-
-    # Register the /start command handler
-    application.add_handler(CommandHandler("start", start))
-
-    # Start long polling to listen for messages continuously
-    print("Bot is up and listening for /start commands...")
-    application.run_polling()
-
+# This keeps the bot running and listening for messages
 if __name__ == "__main__":
-    main()
+    print("Bot is running...")
+    bot.infinity_polling()
